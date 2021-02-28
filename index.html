@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="">
+  <div class="h-screen flex flex-col pb-4">
+    <div>
+      <button onClick="run()" class="bg-purple-500 hover:bg-blue-dark text-white font-bold py-2 px-4 rounded">run</button>
+
+      <select onchange="chooseLanguage(this)">
+	<option value="golang">Golang</option>
+	<option value="python">Python</option>
+      </select>
+
+      <div class="flex items-center space-x-4"><svg width="32" height="32" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M16 2a1.4 1.4 0 011.4 1.4v1.4a1.4 1.4 0 11-2.8 0V3.4A1.4 1.4 0 0116 2zM6.1 6.1a1.4 1.4 0 011.98 0l.99.99a1.4 1.4 0 11-1.98 1.98l-.99-.99a1.4 1.4 0 010-1.98zm19.8 0a1.4 1.4 0 010 1.98l-.99.99a1.4 1.4 0 01-1.98-1.98l.99-.99a1.4 1.4 0 011.98 0zM9 16a7 7 0 1114 0 7 7 0 01-14 0zm-7 0a1.4 1.4 0 011.4-1.4h1.4a1.4 1.4 0 110 2.8H3.4A1.4 1.4 0 012 16zm23.8 0a1.4 1.4 0 011.4-1.4h1.4a1.4 1.4 0 110 2.8h-1.4a1.4 1.4 0 01-1.4-1.4zm-2.87 6.93a1.4 1.4 0 011.98 0l.99.99a1.4 1.4 0 01-1.98 1.98l-.99-.99a1.4 1.4 0 010-1.98zm-15.84 0a1.4 1.4 0 011.98 1.98l-.99.99a1.4 1.4 0 01-1.98-1.98l.99-.99zM16 25.8a1.4 1.4 0 011.4 1.4v1.4a1.4 1.4 0 11-2.8 0v-1.4a1.4 1.4 0 011.4-1.4z" fill="url(#paint0_linear)"></path><defs><linearGradient id="paint0_linear" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse"><stop class="transition-all duration-200" stop-color="#FACC15"></stop><stop class="transition-all duration-200" offset="1" stop-color="#FA9D16"></stop></linearGradient></defs></svg><button style="background-color: rgb(96, 211, 96);" id="headlessui-switch-1" role="switch" tabindex="0" class="inline-flex items-center px-0.5 rounded-full w-18 h-9 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:ring-gray-500 focus:outline-none" aria-checked="false"><span class="sr-only">Enable dark mode</span><span class="bg-white rounded-full w-8 h-8" style="box-shadow: rgba(0, 0, 0, 0.05) 0px 2px 5px, rgba(0, 0, 0, 0.1) 0px 1px 1px; transform-origin: 50% 50% 0px;"></span></button><svg width="24" height="24" fill="currentColor" class="transition-colors duration-200 text-gray-300"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.353 2.939a1 1 0 01.22 1.08 8 8 0 0010.408 10.408 1 1 0 011.301 1.3A10.003 10.003 0 0112 22C6.477 22 2 17.523 2 12c0-4.207 2.598-7.805 6.273-9.282a1 1 0 011.08.22z"></path></svg></div>
+  </div>
+
+  <div class="flex flex-row h-full">
+    <div class="flex-1 relative border-4 rounded border-gray-500 mr-2 ml-1">
+      <div class="w-full h-full">
+	<div class="w-full h-full absolute" id="editor"></div>
+      </div>
+    </div>
+
+    <div class="w-2/5 relative border-4 rounded border-gray-500 mr-1">
+      <div class="w-full h-full">
+	<div class="w-full h-full absolute" id="result"></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+<script src="./ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+  var editor = ace.edit("editor");
+  editor.resize()
+  editor.setTheme("ace/theme/twilight");
+  document.getElementById('editor').style.fontSize='16px';
+
+  var result = ace.edit("result");
+  result.renderer.setShowGutter(false);
+  document.getElementById('result').style.fontSize='16px';
+  result.setTheme("ace/theme/twilight");
+  result.setReadOnly(true);  // false to make it editable
+
+  var language = "golang"
+  
+  async function run() {
+      const response = await fetch("http://localhost:8080/compile", {
+	  method: "POST",
+	  body: JSON.stringify({
+	      "Code": editor.getValue(),
+	      "Language": language
+	  })
+      }).then(response => response.json())
+        .then(json => result.setValue(json["result"]));
+  }
+
+  editor.session.setMode("ace/mode/"+language);
+  editor.session.setTabSize(8);
+  
+  function chooseLanguage(obj) {
+      console.log(obj)
+      language = obj.value;
+
+      if (language == "golang") {
+	  editor.session.setTabSize(8);
+      } else {
+	  editor.session.setTabSize(4);
+      }
+      editor.session.setMode("ace/mode/"+language);
+  }
+  
+</script>
+</body>
+</html>
